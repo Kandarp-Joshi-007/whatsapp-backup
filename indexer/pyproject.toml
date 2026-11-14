@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wa-archive"
+version = "0.1.0"
+description = "Decrypt WhatsApp .crypt15 backups and build a per-chat browsable archive index"
+requires-python = ">=3.9"
+dependencies = ["cryptography>=41", "Pillow>=10"]
+
+[project.scripts]
+wa-archive = "wa_archive.cli:main"
+
+[tool.setuptools]
+packages = ["wa_archive"]
