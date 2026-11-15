@@ -140,7 +140,15 @@ class SetupActivity : Activity() {
             startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)); finish()
         }.apply { tag = "open"; (layoutParams as LinearLayout.LayoutParams).gravity = Gravity.CENTER_HORIZONTAL })
 
-        setContentView(ScrollView(this).apply { addView(root); setBackgroundColor((root.background as? android.graphics.drawable.ColorDrawable)?.color ?: Color.WHITE) })
+        val bg = (root.background as? android.graphics.drawable.ColorDrawable)?.color ?: Color.WHITE
+        setContentView(ScrollView(this).apply {
+            addView(root); setBackgroundColor(bg)
+            // Android 15 draws apps edge-to-edge: keep content clear of the status and navigation bars
+            setOnApplyWindowInsetsListener { v, insets ->
+                val bars = insets.getInsets(android.view.WindowInsets.Type.systemBars())
+                v.setPadding(bars.left, bars.top, bars.right, bars.bottom); insets
+            }
+        })
         refreshStatus()
     }
 
@@ -171,7 +179,17 @@ class SetupActivity : Activity() {
                 if (r.hasResolution()) startIntentSenderForResult(r.pendingIntent!!.intentSender, 42, null, 0, 0, 0, null)
                 else driveConnected()
             }
-            .addOnFailureListener { e -> toast("Google sign-in failed: ${e.message}") }
+            .addOnFailureListener { e ->
+                val msg = e.message ?: ""
+                if ("UNREGISTERED_ON_API_CONSOLE" in msg || "DEVELOPER_ERROR" in msg || msg.startsWith("10:"))
+                    android.app.AlertDialog.Builder(this).setTitle("Google doesn't know this app yet")
+                        .setMessage("Do the one-time Google Cloud step first (docs/APP_SETUP.md, section A).\n\n" +
+                            "Create an Android OAuth client with:\n• Package name: $packageName\n" +
+                            "• SHA-1: 64:4D:7E:5E:69:2B:29:B6:15:3C:1E:3B:6F:F1:19:6C:EE:DD:18:73\n\n" +
+                            "If you already did, wait 5–10 minutes and try again.")
+                        .setPositiveButton("OK", null).show()
+                else toast("Google sign-in failed: $msg")
+            }
     }
 
     @Deprecated("Deprecated in Java")

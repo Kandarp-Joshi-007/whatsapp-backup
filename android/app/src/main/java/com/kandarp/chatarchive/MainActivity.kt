@@ -51,7 +51,17 @@ class MainActivity : Activity() {
                 }
             }
         }
-        setContentView(web)
+        val dark = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        setContentView(android.widget.FrameLayout(this).apply {
+            setBackgroundColor(android.graphics.Color.parseColor(if (dark) "#202C33" else "#008069")) // matches the top bar
+            addView(web)
+            // Android 15 draws apps edge-to-edge: keep the viewer clear of the status and navigation bars
+            setOnApplyWindowInsetsListener { v, insets ->
+                val bars = insets.getInsets(android.view.WindowInsets.Type.systemBars())
+                v.setPadding(bars.left, bars.top, bars.right, bars.bottom); insets
+            }
+        })
         web.loadUrl("https://appassets.androidplatform.net/assets/viewer/index.html?app=1")
     }
 

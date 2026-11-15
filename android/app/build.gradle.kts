@@ -11,8 +11,8 @@ android {
         applicationId = "com.kandarp.chatarchive"
         minSdk = 30          // Android 11+: needed for "All files access"
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.1.1"
     }
 
     // One fixed signing key, so every new APK installs over the old one and keeps the
