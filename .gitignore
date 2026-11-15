@@ -11,3 +11,10 @@ key.txt
 contacts*.vcf
 aliases.json
 /index/
+# Android build output
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+# test fixtures are synthetic (fake chats) and needed by the tests
+!android/app/src/test/resources/fixture/**

@@ -141,3 +141,5 @@ a { color: var(--link); }
 .err { background: #f15c6d22; border: 1px solid #f15c6d; padding: 10px 12px; border-radius: 8px; margin-top: 12px; white-space: pre-wrap; }
 #toast { position: fixed; bottom: calc(env(safe-area-inset-bottom) + 24px); left: 50%; transform: translateX(-50%); background: #323739; color: #fff; padding: 10px 18px; border-radius: 22px; z-index: 60; font-size: 14px; max-width: calc(100% - 32px); }
 .hl { background: #ffd27966; border-radius: 3px; }
+.banner { display: block; width: 100%; text-align: left; padding: 10px 14px; font-size: 13.5px; background: #00a88414; color: var(--text); border-bottom: 1px solid var(--line); }
+.banner.bad { background: #f15c6d22; }

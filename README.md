@@ -6,6 +6,14 @@ with a WhatsApp-style viewer that works on any phone or browser. You can still f
 
 Personal tool. Android (WhatsApp end-to-end backup with a 64-digit key) + Google Drive.
 
+## 📱 The app (recommended)
+
+**[Download `apk/ChatArchive.apk`](apk/ChatArchive.apk)** and follow **[docs/APP_SETUP.md](docs/APP_SETUP.md)**.
+One app reads the WhatsApp backup on the phone, uploads new media to your Drive every night on Wi-Fi,
+and shows everything WhatsApp-style by chat and date. Source: [`android/`](android).
+
+## Advanced: no-app version (FolderSync + Colab + web viewer)
+
 | Part | What it does | Where it runs |
 |---|---|---|
 | FolderSync (3rd-party app) | Uploads WhatsApp's folder to `Drive/WhatsAppArchive/raw` every night | Your phone |

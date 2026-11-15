@@ -90,6 +90,10 @@ function richText(text, query) {
   return frag;
 }
 
+// Inside the Android app (window.AndroidBridge), data comes from the phone + Drive via the app.
+const IN_APP = !!window.AndroidBridge;
+window.nativeToast = (t) => toast(t, 3500);
+
 // ---------------------------------------------------------------- data sources
 const settings = (() => {
   let s = {};
@@ -231,6 +235,13 @@ async function loadMonth(chatId, month) {
 function render(...nodes) { const app = $("#app"); app.replaceChildren(...nodes); }
 
 // ---------------------------------------------------------------- chat list
+function backupBanner() {
+  let s = {};
+  try { s = JSON.parse(AndroidBridge.status()); } catch {}
+  const icon = s.phase === "error" ? "⚠️" : s.phase === "done" ? "✅" : s.phase === "never" ? "☁️" : "⏳";
+  const text = s.phase === "never" ? "Not backed up yet — tap to set up" : (s.detail || "");
+  return h("button", { class: "banner" + (s.phase === "error" ? " bad" : ""), onclick: () => AndroidBridge.openSetup() }, `${icon} ${text}`);
+}
 function viewChatList() {
   const input = h("input", { type: "search", placeholder: "Search chats", "aria-label": "Search chats", value: viewChatList.q || "" });
   const list = h("div", { class: "list" });
@@ -251,7 +262,8 @@ function viewChatList() {
   input.addEventListener("input", draw);
   render(
     h("div", { class: "bar" }, h("h1", {}, "Chat Archive"),
-      h("button", { class: "icon-btn", "aria-label": "Settings", onclick: () => go("#/settings") }, icon("gear"))),
+      h("button", { class: "icon-btn", "aria-label": "Settings", onclick: () => IN_APP ? AndroidBridge.openSetup() : go("#/settings") }, icon("gear"))),
+    IN_APP ? backupBanner() : null,
     h("div", { class: "search" }, input), list);
   draw();
 }
@@ -522,6 +534,7 @@ async function fetchBlob(x, onProgress) {
   return url;
 }
 async function download(x) {
+  if (IN_APP) return AndroidBridge.save(x.m.p || "", fileName(x));
   if (x.m.miss && App.src.kind !== "drive") return toast("This file is not in the backup");
   toast("Downloading " + fileName(x) + "…", 60000);
   try {
@@ -531,6 +544,7 @@ async function download(x) {
   } catch (e) { handleError(e); }
 }
 async function downloadMany(items) {
+  if (IN_APP) return items.forEach((x) => AndroidBridge.save(x.m.p || "", fileName(x)));
   for (let n = 0; n < items.length; n++) {
     toast(`Downloading ${n + 1} of ${items.length}…`, 60000);
     try {
@@ -622,7 +636,7 @@ async function route() {
   document.querySelectorAll(".modal,.lb").forEach((e) => e.remove());
   const [path, qs] = location.hash.replace(/^#/, "").split("?");
   const params = new URLSearchParams(qs || "");
-  if (path === "/settings") return viewSettings();
+  if (path === "/settings") return IN_APP ? AndroidBridge.openSetup() : viewSettings();
   if (!App.manifest) return boot();
   const m = path.match(/^\/c\/([0-9a-f]+)(\/media)?$/);
   const chat = m && App.chats.get(m[1]);
@@ -633,7 +647,8 @@ async function route() {
 async function boot() {
   const demo = new URLSearchParams(location.search).get("demo");
   if (!App.src) {
-    if (demo) App.src = new LocalSource(demo);
+    if (IN_APP) { App.src = new LocalSource("https://appassets.androidplatform.net/data/"); App.src.kind = "app"; }
+    else if (demo) App.src = new LocalSource(demo);
     else if (settings.get("clientId")) App.src = new DriveSource(settings.get("clientId"), settings.get("folderName") || "WhatsAppArchive");
     else return viewSettings();
   }
@@ -651,5 +666,5 @@ async function boot() {
   route();
 }
 addEventListener("hashchange", route);
-if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+if (!IN_APP && "serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
 route();
